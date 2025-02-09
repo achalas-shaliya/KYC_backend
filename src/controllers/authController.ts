@@ -8,14 +8,14 @@ const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, document } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashedPassword, role });
 
     // If the user is a customer, create a CUSTOMER entry
     if (role === "customer") {
-      await Customer.create({ userId: user.id, status: "pending" });
+      await Customer.create({ userId: user.id, status: "pending", document });
     }
 
     res.json({ message: "User registered successfully", user });
