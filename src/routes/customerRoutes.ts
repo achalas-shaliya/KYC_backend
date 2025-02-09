@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { saveCustomer } from "../controllers/customerController";
+import { getCustomers, saveCustomer, updateCustomerStatus } from "../controllers/customerController";
+import { authenticateAdmin } from "../middleware/auth";
 
 const router: Router = Router();
 
@@ -12,5 +13,7 @@ const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => P
 
 // ✅ New API for Saving Customer
 router.post("/", asyncHandler(saveCustomer));
+router.get("/", authenticateAdmin, asyncHandler(getCustomers));
+router.patch("/:id", authenticateAdmin, asyncHandler(updateCustomerStatus));
 
 export default router;
