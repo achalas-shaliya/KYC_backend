@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import customerRoutes from "./routes/customerRoutes";
 import uploadRoutes from './routes/uploadRoutes';
+import authRoutes from "./routes/authRoutes";
 import db from "./models"; // Ensure models are imported correctly
 
 dotenv.config();
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/upload", uploadRoutes);
 

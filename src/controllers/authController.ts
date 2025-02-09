@@ -4,7 +4,7 @@ import User from "../models/user";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-// ✅ Ensure function returns `Promise<void>`
+// Admin Login
 export const adminLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password } = req.body;
