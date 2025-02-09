@@ -1,6 +1,5 @@
 import { NextFunction, Router } from "express";
 import { uploadFile } from "../controllers/uploadController";
-import { authenticateAdmin } from "../middleware/auth";
 
 const router: Router = Router();
 
