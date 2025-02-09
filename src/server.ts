@@ -2,7 +2,8 @@ import express, { Application } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import customerRoutes from "./routes/customerRoutes";
-import db from "./models"; // ✅ Ensure models are imported correctly
+import uploadRoutes from './routes/uploadRoutes';
+import db from "./models"; // Ensure models are imported correctly
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/customers", customerRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Sequelize is connecting before starting the server
 db.sequelize
