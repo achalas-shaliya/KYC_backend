@@ -1,16 +1,10 @@
-import { Router, Request, Response, NextFunction } from "express";
-import { adminLogin } from "../controllers/authController";
+import { Router } from "express";
+import { login, register } from "../controllers/authController";
+import asyncHandler from "../middleware/asyncHandler"; //  Move asyncHandler to middleware
 
 const router: Router = Router();
 
-// ✅ Async wrapper to handle errors correctly
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
-
-// ✅ Apply asyncHandler to avoid TypeScript overload errors
-router.post("/login", asyncHandler(adminLogin));
+router.post("/login", asyncHandler(login)); //  Login for all users (Admin, Manager, Customer)
+router.post("/register", asyncHandler(register)); //  Register a new user
 
 export default router;

@@ -1,19 +1,14 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { getCustomers, saveCustomer, updateCustomerStatus } from "../controllers/customerController";
-import { authenticateAdmin } from "../middleware/auth";
+import { authenticateUser, authorizeRoles } from "../middleware/auth";
+import asyncHandler from "../middleware/asyncHandler"; //  Use asyncHandler from middleware
 
 const router: Router = Router();
 
-// ✅ Async wrapper to handle errors properly
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
+//  Allow only Admins & Managers to fetch customers
+router.get("/", authenticateUser, authorizeRoles("admin", "manager"), asyncHandler(getCustomers));
 
-// ✅ New API for Saving Customer
-router.post("/", asyncHandler(saveCustomer));
-router.get("/", authenticateAdmin, asyncHandler(getCustomers));
-router.patch("/:id", authenticateAdmin, asyncHandler(updateCustomerStatus));
+//  Allow only Admins & Managers to update status
+router.patch("/:id", authenticateUser, authorizeRoles("admin", "manager"), asyncHandler(updateCustomerStatus));
 
 export default router;

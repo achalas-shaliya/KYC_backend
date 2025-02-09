@@ -1,6 +1,5 @@
 import { NextFunction, Router } from "express";
 import { uploadFile } from "../controllers/uploadController";
-import { authenticateAdmin } from "../middleware/auth";
 
 const router: Router = Router();
 
@@ -10,7 +9,7 @@ const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => P
     };
 };
 
-// ✅ File upload route (without Multer)
+//  File upload route (without Multer)
 router.post("/", uploadFile);
 
 export default router;

@@ -1,40 +1,31 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
-import bcrypt from "bcryptjs";
+import Customer from "./customer";
 
-interface UserAttributes {
-    id: number;
-    email: string;
-    password: string;
-}
-
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> { }
-
-class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-    public id!: number;
-    public email!: string;
-    public password!: string;
-
-    public async comparePassword(candidatePassword: string): Promise<boolean> {
-        return bcrypt.compare(candidatePassword, this.password);
-    }
+class User extends Model {
+  public id!: number;
+  public name!: string;
+  public email!: string;
+  public password!: string;
+  public role!: string;
 }
 
 User.init(
-    {
-        id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        email: { type: DataTypes.STRING, allowNull: false, unique: true },
-        password: { type: DataTypes.STRING, allowNull: false },
-    },
-    {
-        sequelize,
-        tableName: "users",
-        hooks: {
-            beforeCreate: async (user) => {
-                user.password = await bcrypt.hash(user.password, 10);
-            },
-        },
-    }
+  {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.ENUM("admin", "customer", "manager"), allowNull: false },
+  },
+  {
+    sequelize,
+    tableName: "users",
+    timestamps: true,
+  }
 );
+
+// A USER Can Have A CUSTOMER Profile (Only if role = "customer")
+// User.hasOne(Customer, { foreignKey: "userId", as: "customerProfile", onDelete: "CASCADE" });
 
 export default User;

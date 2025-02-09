@@ -1,10 +1,10 @@
 import { Router } from "express";
+import asyncHandler from "../middleware/asyncHandler";
 import { getSummary } from "../controllers/summaryController";
-import { authenticateAdmin } from "../middleware/auth";
+import { authenticateUser, authorizeRoles } from "../middleware/auth";
 
 const router: Router = Router();
 
-// Protected route (Requires JWT authentication)
-router.get("/", authenticateAdmin, getSummary);
+router.get("/", authenticateUser, authorizeRoles("admin", "manager"), asyncHandler(getSummary));
 
 export default router;

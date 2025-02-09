@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import Customer from "../models/customer";
+import { User } from "../models";
+import { AuthRequest } from "../middleware/auth";
 
-// Create and Save a New Customer
-export const saveCustomer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Create & Save a New Customer (Only for Customers)
+export const saveCustomer = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { name, email, document } = req.body;
 
@@ -11,7 +13,23 @@ export const saveCustomer = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const newCustomer = await Customer.create({ name, email, document, status: 'pending' });
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    if (req.user.role !== "customer") {
+      res.status(403).json({ message: "Only customers can register" });
+      return;
+    }
+
+    const newCustomer = await Customer.create({
+      userId: req.user.id, //  Link customer to logged-in user
+      name,
+      email,
+      document,
+      status: "pending",
+    });
 
     res.status(201).json({ message: "Customer saved successfully", customer: newCustomer });
   } catch (error) {
@@ -19,13 +37,28 @@ export const saveCustomer = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// Ensure function returns `Promise<void>`
-export const getCustomers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Get Customers (Admins/Managers see all, Customers see their own)
+export const getCustomers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const customers = await Customer.findAll({ limit, offset,order:[['id','DESC']] });
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const whereClause = req.user.role === "customer" ? { userId: req.user.id } : {};
+
+    const customers = await Customer.findAll({
+      where: whereClause,
+      include: [
+        { model: User, as: "user", attributes: ["id", "name", "email"] }, //  Fetch user details
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
 
     res.json({ data: customers, hasMore: customers.length === limit });
   } catch (error) {
@@ -33,9 +66,19 @@ export const getCustomers = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// Ensure function returns `Promise<void>`
-export const updateCustomerStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Update Customer Status (Admins/Managers Only)
+export const updateCustomerStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    if (req.user.role !== "admin" && req.user.role !== "manager") {
+      res.status(403).json({ message: "Forbidden: You cannot update status" });
+      return;
+    }
+
     const { id } = req.params;
     const { status } = req.body;
 
@@ -52,7 +95,7 @@ export const updateCustomerStatus = async (req: Request, res: Response, next: Ne
 
     await customer.update({ status });
 
-    res.json({ message: `Customer status updated to ${status}`, data: customer });
+    res.json({ message: `Customer status updated to ${status}` });
   } catch (error) {
     next(error);
   }

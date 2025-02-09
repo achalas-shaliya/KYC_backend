@@ -1,36 +1,28 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../config/database"; // Import Sequelize connection
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../config/database";
+import User from "./user";
 
-interface CustomerAttributes {
-  id: number;
-  name: string;
-  email: string;
-  status: "pending" | "approved" | "rejected";
-  document?: string;
-}
-
-interface CustomerCreationAttributes extends Optional<CustomerAttributes, "id"> { }
-
-class Customer extends Model<CustomerAttributes, CustomerCreationAttributes> implements CustomerAttributes {
+class Customer extends Model {
   public id!: number;
-  public name!: string;
-  public email!: string;
-  public status!: "pending" | "approved" | "rejected";
-  public document?: string;
+  public userId!: number;
+  public status!: string;
 }
 
 Customer.init(
   {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    name: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    status: { type: DataTypes.ENUM("pending", "approved", "rejected"), defaultValue: "pending" },
-    document: { type: DataTypes.STRING },
+    userId: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+    status: { type: DataTypes.ENUM("pending", "approved", "rejected"), allowNull: false, defaultValue: "pending" },
+    document: { type: DataTypes.STRING, allowNull: true }, // Allows storing document URL
   },
   {
     sequelize,
     tableName: "customers",
+    timestamps: true,
   }
 );
+
+// CUSTOMER Belongs to USER
+Customer.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 export default Customer;
